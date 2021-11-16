@@ -1,0 +1,31 @@
+### ---------------------------------------------------------------------------
+### RETRIEVE LLDP NEIGHBORS FROM DEVICE
+### ---------------------------------------------------------------------------
+- hosts: all
+  connection: local
+  gather_facts: False
+  become: False
+  roles: 
+    - juniper.junos
+  vars:
+    backup_directory: "./output"
+
+  tasks:
+    - name: "### RETRIEVE LLDP NEIGHBORS WITH NETCONF ###"
+      juniper_junos_rpc:
+        host: "{{ ansible_host }}"
+        rpc: get-lldp-neighbors-information
+      register: output_lldp_neighbors
+
+    - name: "### PRINT OUTPUT TO THE SCREEN ###"
+      debug:
+        msg: "{{ output_lldp_neighbors }}"
+
+    ### ------------------------------------------------------------
+    ### WRITING CONFIGURATIONS TO FILES
+    ### ------------------------------------------------------------
+    - name: "### Writing LLDP neighbors to file"
+      local_action:
+        module: copy
+        content: "{{ output_lldp_neighbors.parsed_output }}"
+        dest: "{{ backup_directory }}/{{ inventory_hostname }}.json"
